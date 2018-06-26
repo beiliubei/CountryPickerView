@@ -47,14 +47,14 @@ extension CountryPickerViewController {
             
             var header = Set<String>()
             countriesArray.forEach{
-                let name = $0.name
+                let name = $0.sortCode
                 header.insert(String(name[name.startIndex]))
             }
             
             var data = [String: [Country]]()
             
             countriesArray.forEach({
-                let name = $0.name
+                let name = $0.sortCode
                 let index = String(name[name.startIndex])
                 var dictValue = data[index] ?? [Country]()
                 dictValue.append($0)

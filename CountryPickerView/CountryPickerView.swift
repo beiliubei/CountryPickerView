@@ -17,15 +17,17 @@ public struct Country {
    public var name: String
    public var code: String
    public var phoneCode: String
+   public var sortCode: String
    public var flag: UIImage {
         return UIImage(named: "CountryPickerView.bundle/Images/\(code.uppercased())",
             in: Bundle(for: CountryPickerView.self), compatibleWith: nil)!
     }
     
-   internal init(name: String, code: String, phoneCode: String) {
+    internal init(name: String, code: String, phoneCode: String, sortCode: String) {
         self.name = name
         self.code = code
         self.phoneCode = phoneCode
+        self.sortCode = sortCode
     }
 }
 
@@ -70,7 +72,7 @@ public class CountryPickerView: NibView {
         get {
             return _selectedCountry
                 ?? countries.first(where: { $0.code == Locale.current.regionCode })
-                ?? countries.first(where: { $0.code == "NG" })!
+                ?? countries.first(where: { $0.code == "CN" })!
         }
         set {
             _selectedCountry = newValue
@@ -80,12 +82,10 @@ public class CountryPickerView: NibView {
     
     override public init(frame: CGRect) {
         super.init(frame: frame)
-        setup()
     }
     
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
-        setup()
     }
     
     func setup() {
@@ -100,7 +100,6 @@ public class CountryPickerView: NibView {
         } else {
             countryDetailsLabel.text = nil
         }
-        
     }
     
     @IBAction func openCountryPickerController(_ sender: Any) {
@@ -125,12 +124,16 @@ public class CountryPickerView: NibView {
         }
     }
     
-    public var countries: [Country] = {
-        var countries = [Country]()
-        let bundle = Bundle(for: CountryPickerView.self)
-        guard let jsonPath = bundle.path(forResource: "CountryPickerView.bundle/Data/CountryCodes", ofType: "json"),
+    public var countries : [Country] = {
+        return [Country]()
+    }()
+    
+    public func initCountries(){
+        countries = [Country]()
+        let bundle = Bundle.main
+        guard let jsonPath = bundle.path(forResource: countryFileJson, ofType: "json"),
             let jsonData = try? Data(contentsOf: URL(fileURLWithPath: jsonPath)) else {
-                return countries
+                return
         }
         
         if let jsonObjects = (try? JSONSerialization.jsonObject(with: jsonData, options: JSONSerialization
@@ -144,18 +147,18 @@ public class CountryPickerView: NibView {
                 
                 guard let name = countryObj["name"] as? String,
                     let code = countryObj["code"] as? String,
+                    let sortCode = countryObj["sortCode"] as? String,
                     let phoneCode = countryObj["dial_code"] as? String else {
                         continue
                 }
                 
-                let country = Country(name: name, code: code, phoneCode: phoneCode)
+                let country = Country(name: name, code: code, phoneCode: phoneCode, sortCode: sortCode)
                 countries.append(country)
             }
-            
         }
-        
-        return countries
-    }()
+        //
+        setup()
+    }
 }
 
 //MARK: Helper methods
@@ -204,6 +207,14 @@ extension CountryPickerView {
 // MARK:- An internal implementation of the CountryPickerViewDataSource.
 // Returns default options where necessary if the data source is not set.
 extension CountryPickerView: CountryPickerViewDataSource {
+    
+    var countryFileJson: String?{
+        if (dataSource?.countryFileJson(in: self) != nil) {
+            return dataSource?.countryFileJson(in: self)
+        }
+        return "CountryPickerView.bundle/Data/CountryCodes"
+    }
+    
     var preferredCountries: [Country] {
         return dataSource?.preferredCountries(in: self) ?? preferredCountries(in: self)
     }

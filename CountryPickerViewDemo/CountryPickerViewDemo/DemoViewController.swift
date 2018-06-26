@@ -43,6 +43,8 @@ class DemoViewController: UITableViewController {
             $0?.dataSource = self
         }
         
+        cpvMain.initCountries()
+        
         cpvInternal.delegate = self
         cpvMain.countryDetailsLabel.font = UIFont.systemFont(ofSize: 20)
         
@@ -154,6 +156,10 @@ extension DemoViewController: CountryPickerViewDataSource {
             return showPhoneCodeInList.isOn
         }
         return false
+    }
+    
+    func countryFileJson(in countryPickerView: CountryPickerView) -> String? {
+        return "country"
     }
 }
 
